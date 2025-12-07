@@ -20,7 +20,7 @@
 
 
 // Define ROS entities
-rcl_publisher_t publisher;
+rcl_subscription_t subscriber;
 std_msgs__msg__Int32 msg;
 rclc_executor_t executor;
 rclc_support_t support;
@@ -29,10 +29,12 @@ rcl_node_t node;
 rcl_timer_t timer;
 EthernetUDP udp;
 
+
 // Define Functions
 void error_loop();                                                                          
 void timer_callback(rcl_timer_t * timer, int64_t last_call_time);
-void PublishMsg();
+void CreateSubscriber();
+
 #define RCCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}     // Checks for Errors in Micro ROS Setup
 #define RCSOFTCHECK(fn) { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}              // 
 
@@ -46,7 +48,7 @@ size_t agent_port = 8888;                                   // Micro ROS Agent P
 
 // ROS Node Configurations
 const char* NodeName = "micro_ros_esp_node";
-const char* PublisherTopic = "micro_ros_esp_publisher";
+const char* SubscriberTopic = "micro_ros_esp_subscriber";
 const int ExecutorTimeout = 100;  // ms
 
 
@@ -69,7 +71,7 @@ void setup() {
   delay(2000);
 
   // Begin Publishing Message "data: <value>"
-  PublishMsg();
+  CreateSubscriber();
 
 }
 
@@ -91,17 +93,20 @@ void error_loop() {
 
 
 
-void timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
-  RCLC_UNUSED(last_call_time);
-  if (timer != NULL) {
-    RCSOFTCHECK(rcl_publish(&publisher, &msg, NULL));
-    msg.data++;
-  }
+// Implementation example:
+void SubscriptionCallback(const void * msgin)
+{
+  // Cast received message to used type
+  const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
+
+  // Process message
+  Serial.print("[SUB] Received: ");
+  Serial.println(msg->data);
 }
 
 
 // Initialising the ROS Node and and sending messages out from a Publisher
-void PublishMsg() {
+void CreateSubscriber() {
 
   // Initialize micro-ROS allocator
   allocator = rcl_get_default_allocator();
@@ -115,27 +120,16 @@ void PublishMsg() {
   RCCHECK(rclc_node_init_default(&node, NodeName, "", &support));
 
 
-  // create publisher
-  RCCHECK(rclc_publisher_init_default(
-    &publisher,
+  // create subscriber (Quality of Service: Best Effort)
+  RCCHECK(rclc_subscription_init_best_effort(
+    &subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-    PublisherTopic)
+    SubscriberTopic)
   );
-
-
-  // create timer,
-  const unsigned int timer_timeout = 1000;
-  RCCHECK(rclc_timer_init_default(
-    &timer,
-    &support,
-    RCL_MS_TO_NS(timer_timeout),
-    timer_callback)
-  );
-
 
   // create executor
   RCCHECK(rclc_executor_init(&executor, &support.context, 1, &allocator));
-  RCCHECK(rclc_executor_add_timer(&executor, &timer));
+  RCCHECK(rclc_executor_add_subscription(&executor, &subscriber, &msg, &SubscriptionCallback, ON_NEW_DATA);)
 
 }
