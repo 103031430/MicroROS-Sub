@@ -1,4 +1,4 @@
-# MicroROS-Pub
+# MicroROS-Sub
 
 This project focuses on getting the ESP32-S3-ETH to publish data under a topic to the ROS2 stack via Micro ROS. This is done via Ethernet where ROS2 will run inside a Docker container.
 Note the following IP configurations:
