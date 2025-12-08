@@ -71,7 +71,7 @@ Publish continuous value using the following command
 ```
 ros2 topic pub <topic-name> <msg-type> "<arg>"
 
-e.g. ros2 topic pub /micro_ros_esp_subscriber std_msgs/msg/Int32 "{data:420}"
+e.g. ros2 topic pub /micro_ros_esp_subscriber std_msgs/msg/Int32 "data: 420"
 ```
 ## References
 The following links will provide further details each function used in the code:
