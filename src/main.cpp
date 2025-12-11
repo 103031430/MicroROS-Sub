@@ -39,8 +39,10 @@ void CreateSubscriber();
 
 // Network Configuration
 byte esp_mac[] = { 0xDE, 0xAD, 0xAF, 0x91, 0x3E, 0xD7 };    // Mac address of ESP32
-IPAddress esp_ip(192, 168, 0, 108);                         // IP address of ESP32
-IPAddress agent_ip(192, 168, 0, 30);                        // IP address of Micro ROS agent        
+IPAddress esp_ip(192, 168, 0, 200);                         // IP address of ESP32
+IPAddress dns(192, 168, 0, 1);                         // IP address of ESP32
+IPAddress gateway(192, 168, 0, 1);                         // IP address of ESP32
+IPAddress agent_ip(192, 168, 0, 10);                        // IP address of Micro ROS agent        
 size_t agent_port = 8888;                                   // Micro ROS Agent Port Number
 
 
@@ -65,7 +67,7 @@ void setup() {
   Ethernet.init(W5500_CS);
 
   // Start Micro ROS Transport Connection
-  set_microros_eth_transports(esp_mac, esp_ip, agent_ip, agent_port);
+  set_microros_eth_transports(esp_mac, esp_ip, dns, gateway, agent_ip, agent_port);
   delay(2000);
 
   // Begin Publishing Message "data: <value>"
